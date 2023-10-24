@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends
+import time
+
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi_cache.decorator import cache
 from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,9 +17,26 @@ router = APIRouter(
 
 @router.get("/")
 async def get_specific_operations(operation_type: str, session: AsyncSession = Depends(get_async_session)):
-    query = select(operation).where(operation.c.type == operation_type)
-    result = await session.execute(query)
-    return result.all()
+    try:
+        query = select(operation).where(operation.c.type == operation_type)
+        result = await session.execute(query)
+        return {
+            'status': 'success',
+            'data': result.all(),
+            'details': 'You are great trader!'
+        }
+    except ZeroDivisionError:
+        raise HTTPException(status_code=500, detail={
+            'status': 'success',
+            'data': None,
+            'details': 'You are great trader!'
+        })
+    except Exception:
+        raise HTTPException(status_code=500, detail={
+            'status': 'Error',
+            'data': None,
+            'details': None
+        })
 
 
 @router.post("/")
@@ -25,3 +45,10 @@ async def add_specific_operations(new_operation: OperationCreate, session: Async
     await session.execute(stmt)
     await session.commit()
     return {"status": "success"}
+
+
+@router.get("/long operation")
+@cache(expire=30)
+def get_long_op():
+    time.sleep(2)
+    return 'Много времени требуется для вычислений'
