@@ -4,6 +4,9 @@
 *.py[cod]
 *$py.class
 
+
+.idea/
+
 # C extensions
 *.so
 
@@ -121,12 +124,11 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+
 .venv
-env/
-venv/
+
+
 ENV/
-env.bak/
 venv.bak/
 
 # Spyder project settings
