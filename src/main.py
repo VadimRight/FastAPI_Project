@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
 from src.auth.base_config import auth_backend, fastapi_users
@@ -12,6 +13,7 @@ from fastapi_cache.backends.redis import RedisBackend
 
 from src.operations.router import router as router_operation
 from src.pages.router import router as router_pages
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -25,6 +27,8 @@ app = FastAPI(
     title="Trading App",
     lifespan=lifespan
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
