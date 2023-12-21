@@ -1,5 +1,9 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, APIRouter
 from fastapi.responses import HTMLResponse
+from sqlalchemy import insert
+
+from src.chat.models import Message
+from src.database import async_session
 
 app = FastAPI()
 
@@ -22,9 +26,21 @@ class ConnectionManager:
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
 
-    async def broadcast(self, message: str):
+    async def broadcast(self, message: str, add_to_db: bool):
+        if add_to_db:
+            await self.add_message_to_database(message)
         for connection in self.active_connections:
             await connection.send_text(message)
+
+    @staticmethod
+    async def add_message_to_database(message: str):
+        async with async_session() as session:
+            stmt = insert(Message).values(
+                message=message
+            )
+            await session.execute(stmt)
+            await session.commit()
+
 
 
 manager = ConnectionManager()
@@ -37,7 +53,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int):
         while True:
             data = await websocket.receive_text()
             await manager.send_personal_message(f"You wrote: {data}", websocket)
-            await manager.broadcast(f"Client #{client_id} says: {data}")
+            await manager.broadcast(f"Client #{client_id} says: {data}", add_to_db=True)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-        await manager.broadcast(f"Client #{client_id} left the chat")
+        await manager.broadcast(f"Client #{client_id} left the chat", add_to_db=False)
