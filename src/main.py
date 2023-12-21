@@ -11,7 +11,7 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 
 from src.operations.router import router as router_operation
-
+from src.pages.router import router as router_pages
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -53,6 +53,7 @@ app.add_middleware(
 )
 
 app.include_router(router_operation)
+app.include_router(router_pages)
 
 
 # @app.on_event("startup")
