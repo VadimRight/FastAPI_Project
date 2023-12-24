@@ -24,7 +24,7 @@
     getLastMessages()
         .then(messages => {
             appendMessage("Предыдущие 5 сообщений:")
-            messages.forEach(msg => {
+            messages.forEach(msg =>{
                 appendMessage(msg.message)
             })
             appendMessage("\nНовые сообщения:")

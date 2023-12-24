@@ -16,18 +16,22 @@ from src.pages.router import router as router_pages
 from src.chat.router import router as router_chat
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    redis = aioredis.from_url("redis://localhost", encoding="utf8", decode_responses=True)
-    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
-    yield
-    await redis.flushall()
-
-
 app = FastAPI(
-    title="Trading App",
-    lifespan=lifespan
+    title="Trading App"
 )
+
+origins = [
+    "http://localhost:8000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 app.include_router(
@@ -43,25 +47,13 @@ app.include_router(
 )
 
 
-origins = [
-    "http://localhost:3000",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"],
-    allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin",
-                   "Authorization"],
-)
-
 app.include_router(router_operation)
 app.include_router(router_pages)
 app.include_router(router_chat)
 
-# @app.on_event("startup")
-# async def startup_event():
-#     redis = aioredis.from_url("redis://localhost", encoding="utf8", decode_responses=True)
-#     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+
+@app.on_event("startup")
+async def startup_event():
+    redis = aioredis.from_url("redis://localhost", encoding="utf8", decode_responses=True)
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
 

@@ -53,7 +53,7 @@ async def get_last_messages(
 ):
     query = select(Message).order_by(Message.id.desc()).limit(5)
     messages = await session.execute(query)
-    messages_list = messages.mappings().all()
+    messages_list = messages.scalars().all()
     return messages_list
 
 
