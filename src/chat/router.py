@@ -1,9 +1,10 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, APIRouter
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, APIRouter, Depends
 from fastapi.responses import HTMLResponse
-from sqlalchemy import insert
+from sqlalchemy import insert, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.chat.models import Message
-from src.database import async_session
+from src.database import async_session, get_async_session
 
 app = FastAPI()
 
@@ -11,6 +12,7 @@ router = APIRouter(
     prefix="/chat",
     tags=["Chat"]
 )
+
 
 class ConnectionManager:
     def __init__(self):
@@ -42,8 +44,17 @@ class ConnectionManager:
             await session.commit()
 
 
-
 manager = ConnectionManager()
+
+
+@router.get("/last_messages")
+async def get_last_messages(
+        session: AsyncSession = Depends(get_async_session),
+):
+    query = select(Message).order_by(Message.id.desc()).limit(5)
+    messages = await session.execute(query)
+    messages_list = messages.mappings().all()
+    return messages_list
 
 
 @router.websocket("/ws/{client_id}")

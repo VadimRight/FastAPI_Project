@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
 
+from src.chat.router import get_last_messages
 from src.operations.router import get_specific_operations
 
 router = APIRouter(
@@ -25,6 +26,9 @@ def get_search_page(request: Request):
 def get_search_page_operations(request: Request, operations=Depends(get_specific_operations)):
     return templates.TemplateResponse("search.html", {"request": request, "operations": operations["data"]})
 
+
 @router.get("/chat")
 def get_chat_page(request: Request):
     return templates.TemplateResponse("chat.html", {"request": request})
+
+
