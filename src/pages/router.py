@@ -31,4 +31,3 @@ def get_search_page_operations(request: Request, operations=Depends(get_specific
 def get_chat_page(request: Request):
     return templates.TemplateResponse("chat.html", {"request": request})
 
-
